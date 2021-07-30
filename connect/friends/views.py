@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from rest_framework.response import Response
-from .serializers import ChatSerializer, FriendSerializer,FriendSerializer1
+from rest_framework.serializers import Serializer
+from .serializers import ChatSerializer, FriendSerializer,FriendSerializer1, GetChatSerializer,SearchSerializer
 from django.contrib.auth.models import GroupManager, User
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework import status
@@ -19,6 +20,7 @@ from django import db
 # Create your views here.
 from user.models import Users,Group
 from .models import Friend,Chat
+from user.serializers import UserForeignKey
 # Create your views here.
 # friend unfriend 
 class FriendAPI(APIView):
@@ -39,15 +41,36 @@ class FriendAPI(APIView):
         instance.delete()
         return Response('Deletion sucess full')
 # get create chat
+class AcceptRequest(APIView):
+    def post(self,request):
+        id=request.data['id']
+        obj=Friend.objects.get(id=id)
+        obj.status=True
+        obj.save()
+        return Response("ok")
+    def delete(self,request):
+        id=request.data['id']
+        obj=Friend.objects.get(id=id)
+        obj.delete()
+        return Response("ok")
 
+class SearchFriends(APIView):
+    def post(self,request):
+        searilizer = SearchSerializer(data=request.data)
+        if(searilizer.is_valid()):
+            context = User.objects.filter(username__icontains=request.data['query'] )
+            s = UserForeignKey(context,many=True)
+            return Response(s.data)
+        else:
+            return Response("nothing found")
 class ChatAPI(APIView):
     permission_classes = (IsAuthenticated,)
-    def get(self,request):
+    def get(self,request,id):
         # instance = Friend.objects.get(user1__username=request.user,user2__id=request.data['id'])
-        inst = Chat.objects.get(friend__id=request.data['id'])
-        serializer = ChatSerializer(inst,many=True)
+        inst = Chat.objects.filter(friend__id=id)
+        serializer = GetChatSerializer(inst,many=True)
         return Response(serializer.data)
-    def post(self,request):
+    def post(self,request,id):
         serializer=ChatSerializer(data=request.data)
         
         if(serializer.is_valid()):

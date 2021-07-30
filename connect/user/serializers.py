@@ -12,7 +12,7 @@ class UserSerializer(serializers.Serializer):
 class UserForeignKey(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username','first_name','last_name','is_active')
+        fields = ('id','username','first_name','last_name','is_active','profile')
 
 class SignSerializer(serializers.Serializer):
     
