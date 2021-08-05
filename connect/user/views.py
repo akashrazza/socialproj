@@ -1,3 +1,5 @@
+# from connect.payment.models import Payment
+# from connect import user
 import inspect
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
@@ -8,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework import status
 from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.parsers import MultiPartParser,FormParser,FileUploadParser
 from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -19,6 +22,7 @@ from django.core.mail import send_mail
 from django import db
 # Create your views here.
 from user.models import Users,Group
+from payment.models import Payment
 def emailFunction(sender, reciver, message):
     msg = message
     # send_mail('manufacturer Subject', 'Hi We you have new Order From eKnous Warehouse', 'shivam@eknous.com', [
@@ -28,7 +32,13 @@ def emailFunction(sender, reciver, message):
 
     return HttpResponse('success')
 ######################################################################################
-
+class Logout(APIView):
+    permission_classes=(IsAuthenticated,)
+    def get(self,request):
+        ins=User.objects.get(username=request.user.username)
+        ins.online=False
+        ins.save()
+        return Response('logout sucessfull')
 class auth(APIView):
     
     
@@ -37,15 +47,17 @@ class auth(APIView):
     
     def get(self,request):
         
-        user = User.objects.get(username=request.user)
+        user = User.objects.get(username=request.user.username)
         # print(user)
-        serializer= UserSerializer({'username':user.username,'email':user.email,'firstname':user.first_name,'lastname':user.last_name})
+        user.online=True
+        user.save()
+        serializer= UserSerializer({'username':user.username,'email':user.email,'firstname':user.first_name,'lastname':user.last_name,'id':user.id,'profile':user.profile})
         
         return Response(serializer.data)
 
 class Signup(APIView):
     permission_classes = (AllowAny,)
-    
+    parser_classes = (FormParser, MultiPartParser)
     def post(self,request):
         data=request.data
         
@@ -75,6 +87,7 @@ class Signup(APIView):
                 )
                 # print(email)
                 email.send()
+                Payment.objects.create(user=user,balance=0)
                 return Response({'User Created sucessfully'})
         return Response(serializer.errors)
 

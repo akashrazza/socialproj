@@ -4,8 +4,9 @@ from django.contrib.auth.models import User
 from .models import Group,Users
 
 class UserSerializer(serializers.Serializer):
-    
+    id=serializers.IntegerField()
     username = serializers.CharField(max_length=50)
+    profile = serializers.CharField(max_length=500)
     email = serializers.CharField(max_length=50)
     firstname = serializers.CharField(max_length=50)
     lastname = serializers.CharField(max_length=50)
@@ -22,11 +23,12 @@ class SignSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=50)
     last_name = serializers.CharField(max_length=50)
     email = serializers.EmailField()
+    profile = serializers.FileField()
     def save(self, validated_data):
-    
+        print(validated_data)
         
         user = User.objects.create_user(validated_data['username'],email= validated_data['email'],first_name=validated_data['first_name'],
-                last_name=validated_data['last_name'],password=validated_data['password1'])
+                last_name=validated_data['last_name'],password=validated_data['password1'],profile=validated_data['profile'])
         # print(user.__dict__)
         
         return user

@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'notification',
     'friends',
     'payment',
-    'post'
+    'post',
+    
 ]
 
 

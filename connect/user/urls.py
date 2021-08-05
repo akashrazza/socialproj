@@ -9,6 +9,7 @@ urlpatterns = [
 path('activate/<uidb64>/<token>/',views.activate,name='activate'),
 path('apitoken/', obtain_auth_token, name='api_token_auth'),
 path('api/',views.auth.as_view()),
+path('logout/',views.Logout.as_view()),
 path('api/signup/',views.Signup.as_view()),
 path('api/groups/',views.GroupCreate.as_view()),
 
